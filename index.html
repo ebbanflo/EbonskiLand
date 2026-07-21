@@ -289,21 +289,12 @@
       <ellipse cx="287" cy="386" rx="5" ry="3.6" fill="var(--ink)"/>
       <ellipse cx="315" cy="384" rx="5.5" ry="3.8" fill="var(--ink)"/>
 
-      <!-- BEARD: solid filled mass (mustache + goatee) hugging the jaw -->
-      <path id="beard" fill="var(--ink)" stroke="var(--ink)" stroke-width="2.5" stroke-linejoin="round"
-        d="M228 414
-           C246 398 270 393 300 396
-           C330 393 354 398 372 414
-           C390 440 394 465 385 490
-           C374 515 341 528 300 528
-           C259 528 226 515 215 490
-           C206 465 210 440 228 414 Z"/>
-      <!-- a few loose hairs coming off the edges -->
-      <path id="strays" fill="none" stroke="var(--ink)" stroke-width="2.2" stroke-linecap="round"/>
+      <!-- BEARD: lots of tiny stubble strokes following the jaw contour -->
+      <path id="beard" fill="none" stroke="var(--ink)" stroke-width="1.5" stroke-linecap="round"/>
 
-      <!-- MOUTH: an opening in the beard (drawn on top) -->
-      <ellipse cx="301" cy="461" rx="25" ry="13" fill="var(--paper)" stroke="var(--ink)" stroke-width="2.6"/>
-      <path d="M280 461 q21 6 42 0" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/>
+      <!-- MOUTH: a small opening, drawn on top of the stubble -->
+      <ellipse cx="301" cy="461" rx="22" ry="11" fill="var(--paper)" stroke="var(--ink)" stroke-width="2.4"/>
+      <path d="M282 460 q19 6 38 0" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linecap="round"/>
     </svg>
   </div>
 
@@ -472,26 +463,36 @@ const PROJECTS = [
   }
   document.getElementById('hair').setAttribute('d', d);
 
-  /* ---- BEARD strays: a ragged, hand-drawn edge — short spikes all
-     around (keeps the mass solid) plus a few longer chin wisps ---- */
-  const BE = { cx:300, cy:466, rx:90, ry:64 };
+  /* ---- BEARD: many tiny strokes filling the lower face along the jaw
+     contour (stubble). Sparse on the cheeks, denser toward the chin and
+     mustache; the mouth stays clear. ---- */
+  const JAW   = { cx:300, cy:410, rx:112, ry:80 };   // matches the face contour
+  const MOUTH = { cx:301, cy:461, rx:30, ry:16 };
   d = "";
-  const SPIKES = 40;
-  for(let i=0;i<SPIKES;i++){
-    const a = (i/SPIKES)*Math.PI*2 + rr(-0.06,0.06);
-    const x = BE.cx + Math.cos(a)*BE.rx;
-    const y = BE.cy + Math.sin(a)*BE.ry;
-    if(y < 418 && Math.abs(x-300) < 44) continue;        // leave the nose alone
-    const len = (a > 0.2 && a < Math.PI-0.2) ? rr(9,17) : rr(5,11); // longer at chin
-    d += arc(x, y, a + rr(-0.18,0.18), len, rr(-3,3));
+  let bn = 0, bt = 0;
+  while(bn < 640 && bt < 40000){
+    bt++;
+    const x = rr(JAW.cx-JAW.rx, JAW.cx+JAW.rx);
+    const y = rr(404, JAW.cy+JAW.ry);
+    if(!inEll(x,y,JAW.cx,JAW.cy,JAW.rx,JAW.ry)) continue;          // inside jaw
+    if(inEll(x,y,MOUTH.cx,MOUTH.cy,MOUTH.rx,MOUTH.ry)) continue;   // keep mouth clear
+    const fade = (y - 404) / (JAW.cy + JAW.ry - 404);             // 0 top → 1 chin
+    if(rnd() > 0.3 + 0.7*fade) continue;                          // thinner on cheeks
+    const ang = Math.atan2(y - 372, x - 300) + rr(-0.35,0.35);    // flow down & out
+    d += arc(x, y, ang, rr(4,9), rr(-2,2));
+    bn++;
   }
-  for(let i=0;i<7;i++){                                   // a few longer chin wisps
-    const a = rr(Math.PI*0.28, Math.PI*0.72);
-    const x = BE.cx + Math.cos(a)*BE.rx;
-    const y = BE.cy + Math.sin(a)*BE.ry;
-    d += arc(x, y, a + rr(-0.15,0.15), rr(16,26), rr(-4,4));
+  /* mustache: a denser band of little strokes right under the nose */
+  let mn = 0, mt = 0;
+  while(mn < 230 && mt < 12000){
+    mt++;
+    const x = rr(248, 354), y = rr(403, 434);
+    if(inEll(x,y,MOUTH.cx,MOUTH.cy,MOUTH.rx,MOUTH.ry)) continue;
+    const ang = (x < 301 ? Math.PI*0.86 : Math.PI*0.14) + rr(-0.3,0.3);
+    d += arc(x, y, ang, rr(4,8), rr(-2,2));
+    mn++;
   }
-  document.getElementById('strays').setAttribute('d', d);
+  document.getElementById('beard').setAttribute('d', d);
 })();
 
 /* ---------- interactivity: ONE rAF loop, transforms only ----------
