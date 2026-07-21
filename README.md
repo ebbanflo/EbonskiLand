@@ -8,7 +8,9 @@ Live page: `index.html` (served via GitHub Pages).
 ## What's here
 - Hand-drawn scribble face in the center (eyes follow your cursor).
 - Gloopy, mouse-reactive **Ebonski Land** title (Cooper Black).
-- Floating sections that link out to each project.
+- Borderless floating type sections that drift, parallax, and link out
+  to each project. No SVG filters or heavy effects — everything animates
+  with GPU transforms, so it loads instantly and stays smooth.
 
 ## Adding / editing projects
 Everything is data-driven. Open `index.html`, find the `PROJECTS` config near
