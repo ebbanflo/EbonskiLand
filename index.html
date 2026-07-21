@@ -289,14 +289,21 @@
       <ellipse cx="287" cy="386" rx="5" ry="3.6" fill="var(--ink)"/>
       <ellipse cx="315" cy="384" rx="5.5" ry="3.8" fill="var(--ink)"/>
 
-      <!-- MOUTH: open gap in the beard, like the drawing -->
-      <path id="mouth" d="M268 460 q32 -12 66 -1 q-6 20 -33 20 q-26 0 -33 -19 z"
-            fill="#fff" stroke="var(--ink)" stroke-width="3"/>
+      <!-- BEARD: solid filled mass (mustache + goatee) hugging the jaw -->
+      <path id="beard" fill="var(--ink)" stroke="var(--ink)" stroke-width="2.5" stroke-linejoin="round"
+        d="M228 414
+           C246 398 270 393 300 396
+           C330 393 354 398 372 414
+           C390 440 394 465 385 490
+           C374 515 341 528 300 528
+           C259 528 226 515 215 490
+           C206 465 210 440 228 414 Z"/>
+      <!-- a few loose hairs coming off the edges -->
+      <path id="strays" fill="none" stroke="var(--ink)" stroke-width="2.2" stroke-linecap="round"/>
 
-      <!-- mustache + beard scribble mass drawn over everything below the nose -->
-      <path id="beard" fill="none" stroke="var(--ink)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
-      <!-- chin fringe: short bristles along the bottom edge -->
-      <path id="fringe" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/>
+      <!-- MOUTH: an opening in the beard (drawn on top) -->
+      <ellipse cx="301" cy="461" rx="25" ry="13" fill="var(--paper)" stroke="var(--ink)" stroke-width="2.6"/>
+      <path d="M280 461 q21 6 42 0" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/>
     </svg>
   </div>
 
@@ -465,37 +472,26 @@ const PROJECTS = [
   }
   document.getElementById('hair').setAttribute('d', d);
 
-  /* ---- BEARD + MUSTACHE: tighter curls, mouth stays open */
-  const BEARD = { cx:300, cy:462, rx:128, ry:92 };
-  const MOUTH = { cx:301, cy:462, rx:44, ry:26 };
+  /* ---- BEARD strays: a ragged, hand-drawn edge — short spikes all
+     around (keeps the mass solid) plus a few longer chin wisps ---- */
+  const BE = { cx:300, cy:466, rx:90, ry:64 };
   d = "";
-  made = 0; tries = 0;
-  while(made < 210 && tries < 9000){
-    tries++;
-    const x = rr(BEARD.cx-BEARD.rx, BEARD.cx+BEARD.rx);
-    const y = rr(398, BEARD.cy+BEARD.ry);
-    if(!inEll(x,y,BEARD.cx,BEARD.cy,BEARD.rx,BEARD.ry)) continue;
-    if(inEll(x,y,MOUTH.cx,MOUTH.cy,MOUTH.rx,MOUTH.ry)) continue;
-    d += curl(x, y, rr(4,8), rr(0.6,1.2), Math.PI/2 + rr(-0.5,0.5));
-    made++;
+  const SPIKES = 40;
+  for(let i=0;i<SPIKES;i++){
+    const a = (i/SPIKES)*Math.PI*2 + rr(-0.06,0.06);
+    const x = BE.cx + Math.cos(a)*BE.rx;
+    const y = BE.cy + Math.sin(a)*BE.ry;
+    if(y < 418 && Math.abs(x-300) < 44) continue;        // leave the nose alone
+    const len = (a > 0.2 && a < Math.PI-0.2) ? rr(9,17) : rr(5,11); // longer at chin
+    d += arc(x, y, a + rr(-0.18,0.18), len, rr(-3,3));
   }
-  /* mustache: short directional strokes under the nose, above the mouth */
-  for(let i=0;i<70;i++){
-    const x = rr(244, 358), y = rr(404, 436);
-    if(inEll(x,y,MOUTH.cx,MOUTH.cy,MOUTH.rx,MOUTH.ry)) continue;
-    d += curl(x, y, rr(3,6), rr(0.6,1.1), (x<301? Math.PI:0) + rr(-0.3,0.3));
+  for(let i=0;i<7;i++){                                   // a few longer chin wisps
+    const a = rr(Math.PI*0.28, Math.PI*0.72);
+    const x = BE.cx + Math.cos(a)*BE.rx;
+    const y = BE.cy + Math.sin(a)*BE.ry;
+    d += arc(x, y, a + rr(-0.15,0.15), rr(16,26), rr(-4,4));
   }
-  document.getElementById('beard').setAttribute('d', d);
-
-  /* ---- chin fringe: bristles along the beard's bottom edge */
-  d = "";
-  for(let i=0;i<64;i++){
-    const a = rr(Math.PI*0.18, Math.PI*0.82);           // bottom arc
-    const x = BEARD.cx + Math.cos(a)*BEARD.rx*rr(0.9,1.0);
-    const y = BEARD.cy + Math.sin(a)*BEARD.ry*rr(0.9,1.0);
-    d += arc(x, y, a + rr(-0.25,0.25), rr(10,22), rr(-4,4));
-  }
-  document.getElementById('fringe').setAttribute('d', d);
+  document.getElementById('strays').setAttribute('d', d);
 })();
 
 /* ---------- interactivity: ONE rAF loop, transforms only ----------
