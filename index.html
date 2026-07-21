@@ -466,7 +466,7 @@ const PROJECTS = [
   document.getElementById('hair').setAttribute('d', d);
 
   /* ---- BEARD + MUSTACHE: tighter curls, mouth stays open */
-  const BEARD = { cx:300, cy:462, rx:152, ry:92 };
+  const BEARD = { cx:300, cy:462, rx:128, ry:92 };
   const MOUTH = { cx:301, cy:462, rx:44, ry:26 };
   d = "";
   made = 0; tries = 0;
@@ -476,14 +476,14 @@ const PROJECTS = [
     const y = rr(398, BEARD.cy+BEARD.ry);
     if(!inEll(x,y,BEARD.cx,BEARD.cy,BEARD.rx,BEARD.ry)) continue;
     if(inEll(x,y,MOUTH.cx,MOUTH.cy,MOUTH.rx,MOUTH.ry)) continue;
-    d += curl(x, y, rr(5,12), rr(1.4,2.8), Math.PI/2 + rr(-0.7,0.7));
+    d += curl(x, y, rr(4,8), rr(0.6,1.2), Math.PI/2 + rr(-0.5,0.5));
     made++;
   }
-  /* mustache: dense little curls right under the nose, above the mouth */
+  /* mustache: short directional strokes under the nose, above the mouth */
   for(let i=0;i<70;i++){
-    const x = rr(240, 362), y = rr(404, 436);
+    const x = rr(244, 358), y = rr(404, 436);
     if(inEll(x,y,MOUTH.cx,MOUTH.cy,MOUTH.rx,MOUTH.ry)) continue;
-    d += curl(x, y, rr(4,8), rr(1.2,2.2), (x<301? Math.PI:0) + rr(-0.4,0.4));
+    d += curl(x, y, rr(3,6), rr(0.6,1.1), (x<301? Math.PI:0) + rr(-0.3,0.3));
   }
   document.getElementById('beard').setAttribute('d', d);
 
