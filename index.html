@@ -104,18 +104,101 @@
     user-select:none;
   }
 
-  /* ---------------- FACE ---------------- */
+  /* ---------------- 3D GLASSES ---------------- */
   .face-holder{
     position:absolute;
-    top:50%; left:50%;
-    width:min(38vw, 400px);
-    max-width:86vw;
+    top:47%; left:50%;
     z-index:2;
     pointer-events:none;
     will-change:transform;
-    transform:translate(-50%,-46%);
+    transform:translate(-50%,-50%);
+    perspective:1100px;
   }
-  .face-holder svg{ width:100%; height:auto; display:block; }
+  .specs-scale{
+    position:relative;
+    width:480px; height:190px;
+    transform:scale(var(--gs,1));
+    transform-style:preserve-3d;
+  }
+  @media (max-width:1100px){ .specs-scale{ --gs:0.8; } }
+
+  .specs{
+    position:absolute; inset:0;
+    transform-style:preserve-3d;
+    will-change:transform;
+  }
+  .specs .layer{
+    position:absolute; inset:0;
+    transform-style:preserve-3d;
+  }
+  /* wayfarer rims: thick acetate, heavier browline */
+  .rim{
+    position:absolute; top:12px;
+    width:212px; height:158px;
+    border:14px solid var(--ink);
+    border-top-width:21px;
+    border-radius:34px 34px 62px 62px / 28px 28px 70px 70px;
+  }
+  .rim.l{ left:6px; }
+  .rim.r{ right:6px; }
+  .bridge{
+    position:absolute; left:50%; top:24px;
+    width:72px; height:22px;
+    transform:translateX(-50%);
+    background:var(--ink);
+    border-radius:8px 8px 18px 18px;
+  }
+  /* faint lens tint + highlight on the front layer only */
+  .shine{
+    position:absolute; top:34px;
+    width:182px; height:120px;
+    border-radius:24px 24px 50px 50px / 20px 20px 56px 56px;
+    background:linear-gradient(118deg,
+      rgba(150,168,182,0.10), rgba(150,168,182,0.02) 55%,
+      rgba(150,168,182,0.08));
+  }
+  .shine.l{ left:22px; }
+  .shine.r{ right:22px; }
+
+  /* temple arms fold back in Z — visible as the frame turns */
+  .temple{
+    position:absolute; top:30px;
+    width:170px; height:14px;
+    background:var(--ink);
+  }
+  .temple.l{ left:-2px;  border-radius:4px 10px 10px 4px; transform-origin:left center;  transform:translateZ(-6px) rotateY(88deg); }
+  .temple.r{ right:-2px; border-radius:10px 4px 4px 10px; transform-origin:right center; transform:translateZ(-6px) rotateY(-88deg); }
+  .temple::after{             /* ear hook at the tip */
+    content:""; position:absolute; top:3px;
+    width:12px; height:38px;
+    background:var(--ink);
+    border-radius:0 0 10px 10px;
+  }
+  .temple.l::after{ right:0; }
+  .temple.r::after{ left:0; }
+
+  /* the eyes: two black dots floating behind the lenses */
+  .eyes{
+    position:absolute; inset:0;
+    transform:translateZ(-46px);
+  }
+  .pupil{
+    position:absolute;
+    width:34px; height:34px;
+    border-radius:50%;
+    background:var(--ink);
+    will-change:transform;
+  }
+  .pupil.l{ left:95px;  top:74px; }
+  .pupil.r{ left:351px; top:74px; }
+
+  /* soft ground shadow, pure gradient */
+  .specs-shadow{
+    position:absolute; left:50%; bottom:-52px;
+    width:400px; height:46px;
+    transform:translateX(-50%);
+    background:radial-gradient(50% 50% at 50% 50%, rgba(16,16,16,0.16), transparent 70%);
+  }
 
   /* ---------------- FLOATING SECTIONS (borderless) ---------------- */
   .section{
@@ -213,9 +296,12 @@
     .face-holder{
       position:relative; top:auto; left:auto;
       transform:none !important;
-      margin:14px auto 4px;
-      width:min(68vw,330px);
+      margin:30px auto 26px;
+      width:100%; height:160px;
+      display:flex; align-items:center; justify-content:center;
+      perspective:900px;
     }
+    .specs-scale{ --gs:0.58; }
     #sections{
       display:flex; flex-direction:column; align-items:center; gap:22px;
       padding:10px 16px 74px;
@@ -241,67 +327,26 @@
   </div>
   <div class="subtitle">everything worth clicking, in one weird place</div>
 
-  <!-- THE FACE — scribbled once at load, then only cheap transforms -->
-  <div class="face-holder" id="faceHolder">
-    <svg id="face" viewBox="0 0 600 660" xmlns="http://www.w3.org/2000/svg" aria-label="hand-drawn self portrait">
-      <!-- hair first, so glasses/eyes sit on top of the bangs -->
-      <path id="hair"  fill="none" stroke="var(--ink)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
-
-      <!-- EYE WHITES + PUPILS (clipped so pupils stay inside) -->
-      <defs>
-        <clipPath id="eyeL"><ellipse cx="237" cy="322" rx="46" ry="34"/></clipPath>
-        <clipPath id="eyeR"><ellipse cx="373" cy="318" rx="50" ry="37"/></clipPath>
-      </defs>
-      <g clip-path="url(#eyeL)">
-        <rect x="188" y="285" width="100" height="76" fill="#fff"/>
-        <circle id="pupilL" cx="237" cy="326" r="12.5" fill="var(--ink)"/>
-      </g>
-      <g clip-path="url(#eyeR)">
-        <rect x="320" y="278" width="108" height="82" fill="#fff"/>
-        <circle id="pupilR" cx="373" cy="323" r="14" fill="var(--ink)"/>
-      </g>
-
-      <!-- GLASSES over the eyes, ink-weight like the drawing -->
-      <g fill="none" stroke="var(--ink)" stroke-width="4" stroke-linecap="round">
-        <ellipse cx="237" cy="320" rx="55" ry="48"/>
-        <ellipse cx="373" cy="317" rx="59" ry="51"/>
-        <path d="M290 310 q12 -10 26 -2"/>
-        <path d="M183 314 q-20 -8 -33 2"/>
-        <path d="M431 310 q24 -6 39 6"/>
-      </g>
-
-      <!-- heavy droopy lids ON TOP (that sleepy look, drawn as flat arcs) -->
-      <g fill="none" stroke="var(--ink)" stroke-width="3.4" stroke-linecap="round">
-        <path d="M196 310 q41 -14 84 -2"/>   <!-- left lid, nearly flat -->
-        <path d="M326 306 q47 -15 94 -1"/>   <!-- right lid, nearly flat -->
-        <path d="M204 296 q38 -12 74 -3"/>   <!-- left lid crease above -->
-        <path d="M334 292 q42 -13 82 -2"/>   <!-- right lid crease above -->
-        <path d="M208 361 q26 9 50 3"/>      <!-- under-eye bag L -->
-        <path d="M342 359 q29 10 58 2"/>     <!-- under-eye bag R -->
-      </g>
-
-      <!-- NOSE: long bridge line + nostril wings -->
-      <g fill="none" stroke="var(--ink)" stroke-width="3.6" stroke-linecap="round">
-        <path d="M303 268 q-6 52 -8 96"/>
-        <path d="M295 364 q-14 8 -12 20 q2 10 16 9"/>
-        <path d="M299 393 q10 2 20 -3 q8 -6 4 -16"/>
-      </g>
-      <ellipse cx="287" cy="386" rx="5" ry="3.6" fill="var(--ink)"/>
-      <ellipse cx="315" cy="384" rx="5.5" ry="3.8" fill="var(--ink)"/>
-
-      <!-- BEARD: lots of tiny stubble strokes following the jaw contour -->
-      <path id="beard" fill="none" stroke="var(--ink)" stroke-width="1.5" stroke-linecap="round"/>
-
-      <!-- MOUTH: a small opening, drawn on top of the stubble -->
-      <ellipse cx="301" cy="461" rx="22" ry="11" fill="var(--paper)" stroke="var(--ink)" stroke-width="2.4"/>
-      <path d="M282 460 q19 6 38 0" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linecap="round"/>
-    </svg>
+  <!-- THE GLASSES — CSS-3D wayfarers that turn toward your cursor -->
+  <div class="face-holder" id="faceHolder" aria-hidden="true">
+    <div class="specs-scale">
+      <div class="specs" id="specs">
+        <!-- frame extrusion layers injected by JS -->
+        <div class="eyes">
+          <div class="pupil l" id="pupilL"></div>
+          <div class="pupil r" id="pupilR"></div>
+        </div>
+        <div class="temple l"></div>
+        <div class="temple r"></div>
+      </div>
+      <div class="specs-shadow"></div>
+    </div>
   </div>
 
   <!-- FLOATING SECTIONS injected here -->
   <div id="sections"></div>
 
-  <div class="footer">ebonski land &middot; drawn by hand, wired for the web</div>
+  <div class="footer">ebonski land &middot; looking right back at you</div>
 </div>
 
 <script>
@@ -390,109 +435,21 @@ const PROJECTS = [
   });
 })();
 
-/* ---------- the scribble drawing ----------
-   All jitter is baked into path data ONCE here — no SVG filters,
-   so the browser never re-rasterizes anything while animating.   */
-(function scribble(){
-  let s = 20260721;
-  const rnd = ()=> (s = (s*1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
-  const rr  = (a,b)=> a + (b-a)*rnd();
-  const inEll = (x,y,cx,cy,rx,ry)=> ((x-cx)**2/(rx*rx) + (y-cy)**2/(ry*ry)) <= 1;
-
-  /* one loopy pen curl: the pen orbits a drifting center — this is what
-     the original drawing's hair is made of (looping scribbles, not dashes) */
-  function curl(x, y, r0, loops, driftAng){
-    const steps = Math.max(14, Math.round(loops * 13));
-    let a = rr(0, Math.PI*2);
-    let cx = x, cy = y;
-    const dx = Math.cos(driftAng), dy = Math.sin(driftAng);
-    const pts = [];
-    for(let i=0;i<=steps;i++){
-      const t = i/steps;
-      const r = r0 * (0.9 + 0.18*Math.sin(t*5 + a));   // gentle radius wobble
-      pts.push([cx + Math.cos(a)*r, cy + Math.sin(a)*r*0.85]);
-      a  += (Math.PI*2*loops)/steps;
-      cx += dx * (r0*0.10);                            // center drifts
-      cy += dy * (r0*0.10);
-    }
-    // smooth with quadratic midpoint curves → real pen loops, not polygons
-    let d = `M${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)} `;
-    for(let i=1;i<pts.length-1;i++){
-      const nx2 = (pts[i][0]+pts[i+1][0])/2, ny2 = (pts[i][1]+pts[i+1][1])/2;
-      d += `Q${pts[i][0].toFixed(1)} ${pts[i][1].toFixed(1)} ${nx2.toFixed(1)} ${ny2.toFixed(1)} `;
-    }
-    return d;
+/* ---------- build the 3D glasses frame (extruded layers) ---------- */
+(function buildSpecs(){
+  const specs = document.getElementById('specs');
+  const eyes = specs.querySelector('.eyes');
+  const DEPTH = 6, STEP = 3.4;
+  // back-to-front so the front layer paints last
+  for(let i = DEPTH-1; i >= 0; i--){
+    const layer = document.createElement('div');
+    layer.className = 'layer';
+    layer.style.transform = `translateZ(${(-i*STEP).toFixed(1)}px)`;
+    layer.innerHTML =
+      '<div class="rim l"></div><div class="rim r"></div><div class="bridge"></div>' +
+      (i === 0 ? '<div class="shine l"></div><div class="shine r"></div>' : '');
+    specs.insertBefore(layer, eyes);
   }
-  /* a longer sweeping arc stroke (for silhouette + flow lines) */
-  function arc(x,y,ang,len,curve){
-    const x2 = x + Math.cos(ang)*len, y2 = y + Math.sin(ang)*len;
-    const mx = (x+x2)/2 + Math.cos(ang+Math.PI/2)*curve;
-    const my = (y+y2)/2 + Math.sin(ang+Math.PI/2)*curve;
-    return `M${x.toFixed(1)} ${y.toFixed(1)} Q${mx.toFixed(1)} ${my.toFixed(1)} ${x2.toFixed(1)} ${y2.toFixed(1)} `;
-  }
-
-  /* ---- HAIR: big loopy mass around the whole head, bangs over the brow */
-  const HAIR = { cx:300, cy:280, rx:212, ry:218 };
-  const FACE_CLEAR = { cx:300, cy:392, rx:122, ry:98 };  // eyes/nose/mouth stay clear
-  let d = "";
-  let made = 0, tries = 0;
-  while(made < 300 && tries < 9000){
-    tries++;
-    const x = rr(HAIR.cx-HAIR.rx, HAIR.cx+HAIR.rx);
-    const y = rr(HAIR.cy-HAIR.ry, HAIR.cy+HAIR.ry*0.62);
-    if(!inEll(x,y,HAIR.cx,HAIR.cy,HAIR.rx,HAIR.ry)) continue;
-    if(inEll(x,y,FACE_CLEAR.cx,FACE_CLEAR.cy,FACE_CLEAR.rx,FACE_CLEAR.ry)) continue;
-    const edge = Math.hypot((x-HAIR.cx)/HAIR.rx, (y-HAIR.cy)/HAIR.ry); // 0 center → 1 edge
-    d += curl(x, y, rr(7,20)*(0.7+edge*0.5), rr(1.2,2.6), rr(0,Math.PI*2));
-    made++;
-  }
-  /* flow arcs following the silhouette, like the long pen sweeps */
-  for(let i=0;i<46;i++){
-    const a = rr(-Math.PI*1.05, Math.PI*0.28);          // mostly around the top
-    const rx = HAIR.rx * rr(0.86,1.0), ry = HAIR.ry * rr(0.86,1.0);
-    const x = HAIR.cx + Math.cos(a)*rx;
-    const y = HAIR.cy + Math.sin(a)*ry;
-    d += arc(x, y, a + Math.PI/2 + rr(-0.35,0.35), rr(40,95), rr(-22,22));
-  }
-  /* a few stray flyaway hairs poking out */
-  for(let i=0;i<16;i++){
-    const a = rr(-Math.PI, Math.PI*0.2);
-    const x = HAIR.cx + Math.cos(a)*HAIR.rx*1.0;
-    const y = HAIR.cy + Math.sin(a)*HAIR.ry*1.0;
-    d += arc(x, y, a + rr(-0.4,0.4), rr(20,48), rr(-10,10));
-  }
-  document.getElementById('hair').setAttribute('d', d);
-
-  /* ---- BEARD: many tiny strokes filling the lower face along the jaw
-     contour (stubble). Sparse on the cheeks, denser toward the chin and
-     mustache; the mouth stays clear. ---- */
-  const JAW   = { cx:300, cy:410, rx:112, ry:80 };   // matches the face contour
-  const MOUTH = { cx:301, cy:461, rx:30, ry:16 };
-  d = "";
-  let bn = 0, bt = 0;
-  while(bn < 640 && bt < 40000){
-    bt++;
-    const x = rr(JAW.cx-JAW.rx, JAW.cx+JAW.rx);
-    const y = rr(404, JAW.cy+JAW.ry);
-    if(!inEll(x,y,JAW.cx,JAW.cy,JAW.rx,JAW.ry)) continue;          // inside jaw
-    if(inEll(x,y,MOUTH.cx,MOUTH.cy,MOUTH.rx,MOUTH.ry)) continue;   // keep mouth clear
-    const fade = (y - 404) / (JAW.cy + JAW.ry - 404);             // 0 top → 1 chin
-    if(rnd() > 0.3 + 0.7*fade) continue;                          // thinner on cheeks
-    const ang = Math.atan2(y - 372, x - 300) + rr(-0.35,0.35);    // flow down & out
-    d += arc(x, y, ang, rr(4,9), rr(-2,2));
-    bn++;
-  }
-  /* mustache: a denser band of little strokes right under the nose */
-  let mn = 0, mt = 0;
-  while(mn < 230 && mt < 12000){
-    mt++;
-    const x = rr(248, 354), y = rr(403, 434);
-    if(inEll(x,y,MOUTH.cx,MOUTH.cy,MOUTH.rx,MOUTH.ry)) continue;
-    const ang = (x < 301 ? Math.PI*0.86 : Math.PI*0.14) + rr(-0.3,0.3);
-    d += arc(x, y, ang, rr(4,8), rr(-2,2));
-    mn++;
-  }
-  document.getElementById('beard').setAttribute('d', d);
 })();
 
 /* ---------- interactivity: ONE rAF loop, transforms only ----------
@@ -500,15 +457,12 @@ const PROJECTS = [
    loop, and layout is measured only on load/resize — never per-frame. */
 (function interactive(){
   const faceHolder = document.getElementById('faceHolder');
-  const pupilL = document.getElementById('pupilL');
-  const pupilR = document.getElementById('pupilR');
-  const svg    = document.getElementById('face');
+  const specs  = document.getElementById('specs');
   const chars  = [...document.querySelectorAll('.title .ch')];
   const sections = [...document.querySelectorAll('.section')];
-
-  const EYES = [
-    { el:pupilL, cx:237, cy:326, mx:22, my:16 },
-    { el:pupilR, cx:373, cy:323, mx:24, my:18 },
+  const pupils = [
+    { el: document.getElementById('pupilL'), cx:0, cy:0, ox:0, oy:0 },
+    { el: document.getElementById('pupilR'), cx:0, cy:0, ox:0, oy:0 },
   ];
 
   let mx = innerWidth/2, my = innerHeight/2;
@@ -516,11 +470,15 @@ const PROJECTS = [
   let wide = innerWidth > 820;
 
   // cached geometry — refreshed on resize only
-  let faceRect = null, vb = svg.viewBox.baseVal;
   let charCenters = [];
   function measure(){
     wide = innerWidth > 820;
-    faceRect = svg.getBoundingClientRect();
+    for(const p of pupils){
+      const b = p.el.getBoundingClientRect();
+      // subtract the currently applied offset to get the resting center
+      p.cx = b.left + b.width/2  - p.ox;
+      p.cy = b.top  + b.height/2 - p.oy;
+    }
     charCenters = chars.map(ch=>{
       const b = ch.getBoundingClientRect();
       return { x:b.left + b.width/2, y:b.top + b.height/2 };
@@ -543,26 +501,27 @@ const PROJECTS = [
     else idle = 0;
 
     if(idle < 30){
-      // ---- pupils look at the cursor ----
-      if(faceRect){
-        const gx = (sx - faceRect.left) / faceRect.width  * vb.width;
-        const gy = (sy - faceRect.top)  / faceRect.height * vb.height;
-        for(const eye of EYES){
-          const dx = gx - eye.cx, dy = gy - eye.cy;
-          const dist = Math.hypot(dx,dy) || 1;
-          const ox = (dx/dist) * Math.min(eye.mx, dist*0.15);
-          const oy = (dy/dist) * Math.min(eye.my, dist*0.15);
-          eye.el.style.transform = `translate(${ox.toFixed(1)}px, ${oy.toFixed(1)}px)`;
-        }
-      }
-
       const nx = (sx/innerWidth  - 0.5);   // -0.5..0.5
       const ny = (sy/innerHeight - 0.5);
 
+      // ---- the glasses turn toward the cursor (true 3D) ----
+      specs.style.transform =
+        `rotateY(${(nx*26).toFixed(2)}deg) rotateX(${(-ny*16).toFixed(2)}deg)`;
+
+      // ---- the eyes chase the cursor behind the lenses ----
+      for(const p of pupils){
+        const dx = sx - p.cx, dy = sy - p.cy;
+        const dist = Math.hypot(dx,dy) || 1;
+        const r = Math.min(46, dist*0.14);
+        p.ox = (dx/dist) * r;
+        p.oy = (dy/dist) * r * 0.68;     // lenses are wider than tall
+        p.el.style.transform = `translate(${p.ox.toFixed(1)}px, ${p.oy.toFixed(1)}px)`;
+      }
+
       if(wide){
-        // ---- head drifts gently toward the cursor ----
+        // ---- whole frame drifts gently toward the cursor ----
         faceHolder.style.transform =
-          `translate(-50%,-46%) translate(${(nx*30).toFixed(1)}px, ${(ny*22).toFixed(1)}px) rotate(${(nx*3).toFixed(2)}deg)`;
+          `translate(-50%,-50%) translate(${(nx*24).toFixed(1)}px, ${(ny*16).toFixed(1)}px)`;
 
         // ---- sections parallax away, by depth ----
         for(const sec of sections){

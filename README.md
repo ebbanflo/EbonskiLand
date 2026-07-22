@@ -6,10 +6,11 @@ GitHub Pages apps and repos worth showcasing.
 Live page: `index.html` (served via GitHub Pages).
 
 ## What's here
-- Hand-drawn scribble face in the center (eyes follow your cursor).
+- CSS-3D wayfarer glasses in the center that turn toward your cursor,
+  with two black-dot eyes behind the lenses that follow it.
 - Gloopy, mouse-reactive **Ebonski Land** title (Cooper Black).
 - Borderless floating type sections that drift, parallax, and link out
-  to each project. No SVG filters or heavy effects — everything animates
+  to each project. No libraries, no SVG filters — everything animates
   with GPU transforms, so it loads instantly and stays smooth.
 
 ## Adding / editing projects
