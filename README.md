@@ -11,9 +11,8 @@ Live page: `index.html` (served via GitHub Pages).
   right at you (leaning in), blink, and cock their head — a tiny state
   machine drives the mood swings.
 - Gloopy, mouse-reactive **Ebonski Land** title (Cooper Black).
-- A Balatro-style CRT layer over everything — scanlines, RGB grille,
-  rolling scan band, phosphor flicker — and the whole page tilts
-  slightly toward your cursor like a curved monitor.
+- The whole page tilts in 3D toward your cursor, with the title and
+  sections floating at different depths for real perspective parallax.
 - Borderless floating type sections that drift, parallax, and link out
   to each project. No libraries, no SVG filters — everything animates
   with GPU transforms, so it loads instantly and stays smooth.
