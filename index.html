@@ -122,7 +122,7 @@
   .specs-scale{
     position:relative;
     width:480px; height:190px;
-    transform:scale(var(--gs,1));
+    transform:scale3d(var(--gs,1), var(--gs,1), var(--gs,1));
     transform-style:preserve-3d;
   }
   @media (max-width:1100px){ .specs-scale{ --gs:0.8; } }
@@ -305,7 +305,7 @@
       margin:30px auto 26px;
       width:100%; height:160px;
       display:flex; align-items:center; justify-content:center;
-      perspective:900px;
+      perspective:1000px;
     }
     .specs-scale{ --gs:0.58; }
     #sections{
@@ -474,6 +474,7 @@ const PROJECTS = [
   const sections = [...document.querySelectorAll('.section')];
   const pupils = [document.getElementById('pupilL'), document.getElementById('pupilR')];
   const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const finePointer = matchMedia('(pointer: fine)').matches;
   const rr = (a,b)=> a + Math.random()*(b-a);
 
   let mx = innerWidth/2, my = innerHeight/2;
@@ -510,7 +511,7 @@ const PROJECTS = [
   addEventListener('pointermove', e=>{
     const t = performance.now();
     // notice the mouse when it wakes up after a quiet spell
-    if(t - lastMove > 3000 && !calm){
+    if(t - lastMove > 3000 && !calm && finePointer){
       mode = 'follow'; modeUntil = t + rr(3000,5000); ease = 0.12;
       tiltT = 0; leanT = 0;
     }
@@ -518,12 +519,13 @@ const PROJECTS = [
   }, {passive:true});
 
   function pickMode(t){
-    const mouseFresh = (t - lastMove) < 2500;
+    const mouseFresh = finePointer && (t - lastMove) < 2500;
     const r = Math.random();
     if(mouseFresh){
       mode = r<0.40? 'follow' : r<0.62? 'wander' : r<0.85? 'stare' : 'dart';
     }else{
       mode = r<0.45? 'wander' : r<0.75? 'stare' : r<0.92? 'dart' : 'follow';
+      if(!finePointer && mode==='follow') mode = 'wander';
     }
     tiltT = 0; leanT = 0;
     if(mode==='follow'){ modeUntil = t + rr(2500,5000); ease = 0.10; }
