@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Ebonski Land</title>
 <meta name="description" content="Ebonski Land — the master hub for Ebb's projects." />
+<link rel="icon" href="favicon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
 
 <!-- ============================================================= -->
 <!--  EBONSKI LAND — master link hub                               -->
@@ -452,92 +454,148 @@ const PROJECTS = [
   }
 })();
 
-/* ---------- interactivity: ONE rAF loop, transforms only ----------
-   pointermove just records the mouse; all reads/writes happen in the
-   loop, and layout is measured only on load/resize — never per-frame. */
+/* ---------- personality: ONE rAF loop, transforms only ----------
+   The glasses have moods. A tiny state machine picks what to do next:
+     wander  — glance around at nothing in particular
+     follow  — track the visitor's cursor for a while
+     stare   — look dead ahead at YOU (sometimes leaning in)
+     dart    — a quick flick of the eyes somewhere and back
+   plus blinks, occasional head tilts, and it "notices" your mouse
+   when it starts moving after a quiet spell. */
 (function interactive(){
   const faceHolder = document.getElementById('faceHolder');
   const specs  = document.getElementById('specs');
   const chars  = [...document.querySelectorAll('.title .ch')];
   const sections = [...document.querySelectorAll('.section')];
-  const pupils = [
-    { el: document.getElementById('pupilL'), cx:0, cy:0, ox:0, oy:0 },
-    { el: document.getElementById('pupilR'), cx:0, cy:0, ox:0, oy:0 },
-  ];
+  const pupils = [document.getElementById('pupilL'), document.getElementById('pupilR')];
+  const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const rr = (a,b)=> a + Math.random()*(b-a);
 
   let mx = innerWidth/2, my = innerHeight/2;
-  let sx = mx, sy = my;               // smoothed
+  let sx = mx, sy = my;                 // smoothed mouse
+  let lastMove = -1e9;                  // when the mouse last moved
   let wide = innerWidth > 820;
 
+  // gaze state, normalized: x,y in -1..1 (0,0 = straight at the viewer)
+  const gaze = { x:0, y:0 };
+  let target = { x:0, y:0 };
+  let ease = 0.07;
+  let mode = 'stare', modeUntil = 600, subUntil = 0;
+  let tilt = 0, tiltT = 0;              // head cock (rotateZ)
+  let lean = 0, leanT = 0;              // translateZ toward the viewer
+  let blinkAt = 1800, blinkUntil = 0;
+
   // cached geometry — refreshed on resize only
+  let cx = innerWidth/2, cy = innerHeight/2;   // glasses center on screen
   let charCenters = [];
   function measure(){
     wide = innerWidth > 820;
-    for(const p of pupils){
-      const b = p.el.getBoundingClientRect();
-      // subtract the currently applied offset to get the resting center
-      p.cx = b.left + b.width/2  - p.ox;
-      p.cy = b.top  + b.height/2 - p.oy;
-    }
+    const b = faceHolder.getBoundingClientRect();
+    cx = b.left + b.width/2;
+    cy = b.top + b.height/2;
     charCenters = chars.map(ch=>{
-      const b = ch.getBoundingClientRect();
-      return { x:b.left + b.width/2, y:b.top + b.height/2 };
+      const r = ch.getBoundingClientRect();
+      return { x:r.left + r.width/2, y:r.top + r.height/2 };
     });
   }
   addEventListener('resize', ()=>{ clearTimeout(measure._t); measure._t = setTimeout(measure, 120); }, {passive:true});
   addEventListener('load', measure);
   measure();
 
-  addEventListener('pointermove', e=>{ mx = e.clientX; my = e.clientY; }, {passive:true});
+  addEventListener('pointermove', e=>{
+    const t = performance.now();
+    // notice the mouse when it wakes up after a quiet spell
+    if(t - lastMove > 3000 && !calm){
+      mode = 'follow'; modeUntil = t + rr(3000,5000); ease = 0.12;
+      tiltT = 0; leanT = 0;
+    }
+    mx = e.clientX; my = e.clientY; lastMove = t;
+  }, {passive:true});
 
-  let idle = 0;
+  function pickMode(t){
+    const mouseFresh = (t - lastMove) < 2500;
+    const r = Math.random();
+    if(mouseFresh){
+      mode = r<0.40? 'follow' : r<0.62? 'wander' : r<0.85? 'stare' : 'dart';
+    }else{
+      mode = r<0.45? 'wander' : r<0.75? 'stare' : r<0.92? 'dart' : 'follow';
+    }
+    tiltT = 0; leanT = 0;
+    if(mode==='follow'){ modeUntil = t + rr(2500,5000); ease = 0.10; }
+    if(mode==='wander'){ modeUntil = t + rr(2200,4600); ease = 0.05; subUntil = 0;
+                         if(Math.random()<0.35) tiltT = rr(-6,6); }
+    if(mode==='stare'){  modeUntil = t + rr(1500,3300); ease = 0.09;
+                         target = {x:0, y:0};
+                         if(Math.random()<0.55) leanT = rr(14,30);   // lean in at you
+                         if(Math.random()<0.30) tiltT = rr(-7,7); }  // curious head cock
+    if(mode==='dart'){   modeUntil = t + rr(380,650);   ease = 0.30;
+                         target = {x:rr(-1,1), y:rr(-0.7,0.7)}; }
+  }
+
   function frame(){
-    // ease toward the cursor
-    const px = sx, py = sy;
+    const t = performance.now();
     sx += (mx - sx)*0.09;
     sy += (my - sy)*0.09;
-    // skip all work once everything has settled (saves battery, zero jank)
-    if(Math.abs(sx-px) + Math.abs(sy-py) < 0.05){ idle++; }
-    else idle = 0;
 
-    if(idle < 30){
-      const nx = (sx/innerWidth  - 0.5);   // -0.5..0.5
-      const ny = (sy/innerHeight - 0.5);
-
-      // ---- the glasses turn toward the cursor (true 3D) ----
-      specs.style.transform =
-        `rotateY(${(nx*26).toFixed(2)}deg) rotateX(${(-ny*16).toFixed(2)}deg)`;
-
-      // ---- the eyes chase the cursor behind the lenses ----
-      for(const p of pupils){
-        const dx = sx - p.cx, dy = sy - p.cy;
-        const dist = Math.hypot(dx,dy) || 1;
-        const r = Math.min(46, dist*0.14);
-        p.ox = (dx/dist) * r;
-        p.oy = (dy/dist) * r * 0.68;     // lenses are wider than tall
-        p.el.style.transform = `translate(${p.ox.toFixed(1)}px, ${p.oy.toFixed(1)}px)`;
+    if(!calm){
+      if(t > modeUntil) pickMode(t);
+      if(mode==='wander' && t > subUntil){
+        target = { x:rr(-0.9,0.9), y:rr(-0.6,0.6) };
+        subUntil = t + rr(500,1400);
       }
+      if(mode==='follow'){
+        target.x = Math.max(-1, Math.min(1, (sx - cx)/(innerWidth*0.5)));
+        target.y = Math.max(-1, Math.min(1, (sy - cy)/(innerHeight*0.5)));
+      }
+    }
+    gaze.x += (target.x - gaze.x)*ease;
+    gaze.y += (target.y - gaze.y)*ease;
+    tilt += (tiltT - tilt)*0.04;
+    lean += (leanT - lean)*0.05;
 
-      if(wide){
-        // ---- whole frame drifts gently toward the cursor ----
-        faceHolder.style.transform =
-          `translate(-50%,-50%) translate(${(nx*24).toFixed(1)}px, ${(ny*16).toFixed(1)}px)`;
+    // ---- blink: quick squash of both pupils ----
+    let blink = 1;
+    if(!calm){
+      if(t > blinkAt){
+        blinkUntil = t + 130;
+        blinkAt = t + (Math.random()<0.15 ? 300 : rr(2800,6800));  // double-blinks
+      }
+      if(t < blinkUntil){
+        const p = 1 - Math.abs((blinkUntil - t)/65 - 1);            // 0→1→0
+        blink = Math.max(0.12, 1 - p*0.95);
+      }
+    }
 
-        // ---- sections parallax away, by depth ----
-        for(const sec of sections){
-          const depth = +sec.dataset.depth || 0.5;
-          const cxs = sec.dataset.centered ? 'translateX(-50%) ' : '';
-          sec.style.transform =
-            cxs + `translate(${(-nx*34*depth).toFixed(1)}px, ${(-ny*26*depth).toFixed(1)}px)`;
-        }
+    // ---- head turns where it looks (+ tilt, + lean toward viewer) ----
+    specs.style.transform =
+      `translateZ(${lean.toFixed(1)}px) rotateY(${(gaze.x*14).toFixed(2)}deg)` +
+      ` rotateX(${(-gaze.y*10).toFixed(2)}deg) rotate(${tilt.toFixed(2)}deg)`;
 
-        // ---- title letters lean toward the cursor (cached centers) ----
-        for(let i=0;i<chars.length;i++){
-          const c = charCenters[i]; if(!c) continue;
-          const dx = (sx - c.x)/innerWidth, dy = (sy - c.y)/innerHeight;
-          chars[i].style.setProperty('--lx', (dx*12).toFixed(1)+'px');
-          chars[i].style.setProperty('--ly', (dy*10).toFixed(1)+'px');
-        }
+    // ---- eyes go where the gaze goes ----
+    const pox = (gaze.x*44).toFixed(1), poy = (gaze.y*30).toFixed(1);
+    const pt = `translate(${pox}px, ${poy}px) scale(1, ${blink.toFixed(2)})`;
+    pupils[0].style.transform = pt;
+    pupils[1].style.transform = pt;
+
+    if(wide){
+      // the whole frame drifts a touch in the direction it's looking
+      faceHolder.style.transform =
+        `translate(-50%,-50%) translate(${(gaze.x*14).toFixed(1)}px, ${(gaze.y*9).toFixed(1)}px)`;
+
+      // sections + title still parallax off the mouse
+      const nx = (sx/innerWidth  - 0.5);
+      const ny = (sy/innerHeight - 0.5);
+      for(const sec of sections){
+        const depth = +sec.dataset.depth || 0.5;
+        const cxs = sec.dataset.centered ? 'translateX(-50%) ' : '';
+        sec.style.transform =
+          cxs + `translate(${(-nx*34*depth).toFixed(1)}px, ${(-ny*26*depth).toFixed(1)}px)`;
+      }
+      for(let i=0;i<chars.length;i++){
+        const c = charCenters[i]; if(!c) continue;
+        const dx = (sx - c.x)/innerWidth, dy = (sy - c.y)/innerHeight;
+        chars[i].style.setProperty('--lx', (dx*12).toFixed(1)+'px');
+        chars[i].style.setProperty('--ly', (dy*10).toFixed(1)+'px');
       }
     }
     requestAnimationFrame(frame);

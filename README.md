@@ -6,8 +6,10 @@ GitHub Pages apps and repos worth showcasing.
 Live page: `index.html` (served via GitHub Pages).
 
 ## What's here
-- CSS-3D wayfarer glasses in the center that turn toward your cursor,
-  with two black-dot eyes behind the lenses that follow it.
+- CSS-3D wayfarer glasses in the center with a personality: they look
+  around on their own, sometimes follow your cursor, sometimes stare
+  right at you (leaning in), blink, and cock their head — a tiny state
+  machine drives the mood swings.
 - Gloopy, mouse-reactive **Ebonski Land** title (Cooper Black).
 - Borderless floating type sections that drift, parallax, and link out
   to each project. No libraries, no SVG filters — everything animates
