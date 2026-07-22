@@ -68,7 +68,7 @@
     margin:0;
     font-family:"Cooper Black","Cooper Std","Cooper BT",Cooper,Georgia,serif;
     font-weight:900;
-    font-size:clamp(44px, 10.5vw, 124px);
+    font-size:clamp(30px, 10.5vw, 124px);
     letter-spacing:0.01em;
     line-height:0.92;
     white-space:nowrap;
@@ -302,12 +302,17 @@
     .face-holder{
       position:relative; top:auto; left:auto;
       transform:none !important;
-      margin:30px auto 26px;
-      width:100%; height:160px;
-      display:flex; align-items:center; justify-content:center;
+      margin:26px auto 22px;
+      width:100%; height:150px;
       perspective:1000px;
     }
-    .specs-scale{ --gs:0.58; }
+    /* absolute centering — immune to flex overflow alignment rules,
+       and the box never squeezes, so the shape matches desktop exactly */
+    .specs-scale{
+      --gs:0.62;
+      position:absolute; left:50%; top:50%;
+      transform:translate(-50%,-50%) scale3d(var(--gs), var(--gs), var(--gs));
+    }
     #sections{
       display:flex; flex-direction:column; align-items:center; gap:22px;
       padding:10px 16px 74px;
