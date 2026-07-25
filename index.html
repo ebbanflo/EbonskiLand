@@ -165,14 +165,25 @@
   .shine.l{ left:26px; }
   .shine.r{ right:26px; }
 
-  /* temple arms fold back in Z — visible as the frame turns */
+  /* hinge lugs at the frame corners — extruded with the rest of the frame,
+     so the temple joint stays covered no matter how the head turns */
+  .lug{
+    position:absolute; top:23px;
+    width:16px; height:17px;
+    background:var(--ink);
+    border-radius:5px;
+  }
+  .lug.l{ left:4px; }    /* centred on the left hinge  (x=12)  */
+  .lug.r{ right:4px; }   /* centred on the right hinge (x=468) */
+
+  /* temple arms fold back in Z — hinged exactly at the rim's outer edge */
   .temple{
-    position:absolute; top:30px;
-    width:170px; height:14px;
+    position:absolute; top:27px;
+    width:168px; height:13px;
     background:var(--ink);
   }
-  .temple.l{ left:-2px;  border-radius:4px 10px 10px 4px; transform-origin:left center;  transform:translateZ(-6px) rotateY(88deg); }
-  .temple.r{ right:-2px; border-radius:10px 4px 4px 10px; transform-origin:right center; transform:translateZ(-6px) rotateY(-88deg); }
+  .temple.l{ left:12px;  border-radius:3px 10px 10px 3px; transform-origin:left center;  transform:translateZ(-7px) rotateY(88deg); }
+  .temple.r{ right:12px; border-radius:10px 3px 3px 10px; transform-origin:right center; transform:translateZ(-7px) rotateY(-88deg); }
   .temple::after{             /* ear hook at the tip */
     content:""; position:absolute; top:3px;
     width:12px; height:38px;
@@ -181,6 +192,23 @@
   }
   .temple.l::after{ right:0; }
   .temple.r::after{ left:0; }
+
+  /* opaque lens backing — sits behind the pupils but in front of the
+     temples, so the far arm never shows through the glass as a stray mark */
+  .panes{
+    position:absolute; inset:0;
+    transform:translateZ(-60px);
+  }
+  /* oversized on purpose: it is paper-coloured, so any overhang past the
+     rim is invisible, and the lens stays covered as parallax shifts it */
+  .pane{
+    position:absolute; top:4px;
+    width:210px; height:175px;
+    background:var(--paper);
+    border-radius:40px 40px 66px 66px / 32px 32px 74px 74px;
+  }
+  .pane.l{ left:0; }
+  .pane.r{ right:0; }
 
   /* the eyes: two black dots floating behind the lenses */
   .eyes{
@@ -343,6 +371,10 @@
     <div class="specs-scale">
       <div class="specs" id="specs">
         <!-- frame extrusion layers injected by JS -->
+        <div class="panes">
+          <div class="pane l"></div>
+          <div class="pane r"></div>
+        </div>
         <div class="eyes">
           <div class="pupil l" id="pupilL"></div>
           <div class="pupil r" id="pupilR"></div>
@@ -394,6 +426,7 @@ const PROJECTS = [
     links: [
       { name: "HMMM? Trivia", url: "https://ebbanflo.github.io/multiplayertrivia/" },
       { name: "Friendle",     url: "https://ebbanflo.github.io/friendle/" },
+      { name: "Topple",       url: "https://ebbanflo.github.io/topple/" },
     ],
   },
 ];
@@ -459,6 +492,7 @@ const PROJECTS = [
     layer.style.transform = `translateZ(${(-i*STEP).toFixed(1)}px)`;
     layer.innerHTML =
       '<div class="rim l"></div><div class="rim r"></div><div class="bridge"></div>' +
+      '<div class="lug l"></div><div class="lug r"></div>' +
       (i === 0 ? '<div class="shine l"></div><div class="shine r"></div>' : '');
     specs.insertBefore(layer, eyes);
   }
